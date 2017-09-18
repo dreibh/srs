@@ -24,6 +24,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <srs_librtmp.hpp>
 
 #include <stdlib.h>
+#include <sys/socket.h>
 
 // for srs-librtmp, @see https://github.com/ossrs/srs/issues/213
 #ifndef _WIN32
@@ -491,7 +492,8 @@ int srs_librtmp_context_resolve_host(Context* context)
     }
     
     // connect to server:port
-    context->ip = srs_dns_resolve(context->host);
+    int family = AF_UNSPEC;
+    context->ip = srs_dns_resolve(context->host, family);
     if (context->ip.empty()) {
         return -1;
     }

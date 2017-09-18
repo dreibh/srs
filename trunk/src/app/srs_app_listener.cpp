@@ -178,7 +178,7 @@ int SrsUdpListener::cycle()
     int ret = ERROR_SUCCESS;
 
     // TODO: FIXME: support ipv6, @see man 7 ipv6
-    sockaddr_in6 from;
+    sockaddr_storage from;
     int nb_from = sizeof(sockaddr_in6);
     int nread = 0;
 
@@ -187,7 +187,7 @@ int SrsUdpListener::cycle()
         return ret;
     }
     
-    if ((ret = handler->on_udp_packet(&from, buf, nread)) != ERROR_SUCCESS) {
+    if ((ret = handler->on_udp_packet((sockaddr*)&from, buf, nread)) != ERROR_SUCCESS) {
         srs_warn("handle udp packet failed. ret=%d", ret);
         return ret;
     }
