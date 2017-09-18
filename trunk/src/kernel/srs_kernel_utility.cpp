@@ -157,23 +157,25 @@ int64_t srs_update_system_time_ms()
 
 string srs_dns_resolve(string host)
 {
-    if (inet_addr(host.c_str()) != INADDR_NONE) {
-        return host;
-    }
-    
-    hostent* answer = gethostbyname(host.c_str());
-    if (answer == NULL) {
+    printf("XXX-3: <%s>\n", host.c_str());
+    addrinfo* result  = NULL;
+    if(getaddrinfo(host.c_str(), NULL, NULL, &result) != 0) {
         return "";
     }
     
-    char ipv4[16];
-    memset(ipv4, 0, sizeof(ipv4));
-    for (int i = 0; i < answer->h_length; i++) {
-        inet_ntop(AF_INET, answer->h_addr_list[i], ipv4, sizeof(ipv4));
-        break;
+    char address_string[64];
+    const int success = getnameinfo(result->ai_addr, result->ai_addrlen, 
+                                    (char*)&address_string, sizeof(address_string),
+                                    NULL, 0,
+                                    NI_NUMERICHOST);
+    freeaddrinfo(result);
+
+    if(success) {
+       printf("XXX-3 OK!: <%s> -> %s\n", host.c_str(), address_string);
+       return string(address_string);
     }
-    
-    return ipv4;
+    puts("XXX-3-BAD!!!!");
+    return "";
 }
 
 bool srs_is_little_endian()
