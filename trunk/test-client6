@@ -1,0 +1,3 @@
+#!/bin/sh
+
+mplayer rtmp://ip6-localhost:1935/live/livestream
