@@ -128,6 +128,7 @@ int SrsUdpListener::listen()
         return ret;
     }
     puts("XXX-9-LISTEN-OK!");
+    printf("XXX-9- F=%d\n", result->ai_family);
     
     if ((_fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol)) == -1) {
         ret = ERROR_SOCKET_CREATE;
@@ -204,7 +205,7 @@ SrsTcpListener::SrsTcpListener(ISrsTcpHandler* h, string i, int p)
     handler = h;
     ip = i;
     port = p;
-
+    
     _fd = -1;
     _stfd = NULL;
 
@@ -237,19 +238,20 @@ int SrsTcpListener::listen()
     snprintf(port_string, sizeof(port_string), "%d", port);
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
-    hints.ai_family   = AF_UNSPEC;
+    hints.ai_family   = srs_check_ipv6() ? AF_INET6 : AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_NUMERICHOST;
     addrinfo* result  = NULL;
-    puts("XXX-9");
+    printf("XXX-9b <ip=%s>",ip.c_str());
     if(getaddrinfo(ip.c_str(), port_string, (const addrinfo*)&hints, &result) != 0) {
         ret = ERROR_SYSTEM_IP_INVALID;
-        puts("XXX-9-BAD!!!");
+        puts("XXX-9b-BAD!!!");
         srs_error("bad address. ret=%d", ret);
         return ret;
     }
-    puts("XXX-9-LISTEN-OK!");
-    
+    puts("XXX-9b-LISTEN-OK!");
+    printf("XXX-9b- F=%d\n", result->ai_family);
+
     if ((_fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol)) == -1) {
         ret = ERROR_SOCKET_CREATE;
         srs_error("create linux socket error. port=%d, ret=%d", port, ret);

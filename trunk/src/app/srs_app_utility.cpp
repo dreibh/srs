@@ -214,7 +214,8 @@ string srs_path_build_timestamp(string template_path)
 
 void srs_parse_endpoint(string ip_port, string& ip, string& port)
 {
-    ip = "0.0.0.0";
+    ip = srs_check_ipv6() ? "::" : "0.0.0.0";
+    
     port = ip_port;
     
     size_t pos = string::npos;
@@ -1343,6 +1344,16 @@ string srs_get_public_internet_address()
     }
     
     return "";
+}
+
+int srs_check_ipv6()
+{
+    int sd = socket(AF_INET6, SOCK_DGRAM, 0);
+    if(sd >= 0) {
+        close(sd);
+        return 1;
+    }
+    return 0;
 }
 
 string srs_get_local_ip(int fd)
