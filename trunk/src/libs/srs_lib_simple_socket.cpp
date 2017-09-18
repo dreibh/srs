@@ -63,7 +63,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 #include <errno.h>
+#include <string.h>
+#include <stdio.h>
 
 #include <srs_kernel_utility.hpp>
 
@@ -76,6 +80,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     struct SrsBlockSyncSocket
     {
         SOCKET fd;
+        int    family;
         int64_t recv_timeout;
         int64_t send_timeout;
         int64_t recv_bytes;
