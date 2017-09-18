@@ -155,10 +155,13 @@ int64_t srs_update_system_time_ms()
     return _srs_system_time_us_cache / 1000;
 }
 
-string srs_dns_resolve(string host)
+string srs_dns_resolve(string host, int& family)
 {
     printf("XXX-3: <%s>\n", host.c_str());
-    addrinfo* result  = NULL;
+    addrinfo hints;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family  = family;
+    addrinfo* result = NULL;
     if(getaddrinfo(host.c_str(), NULL, NULL, &result) != 0) {
         return "";
     }
@@ -172,6 +175,7 @@ string srs_dns_resolve(string host)
 
     if(success) {
        printf("XXX-3 OK!: <%s> -> %s\n", host.c_str(), address_string);
+       family = result->ai_family;
        return string(address_string);
     }
     puts("XXX-3-BAD!!!!");
