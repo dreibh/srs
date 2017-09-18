@@ -157,7 +157,6 @@ int64_t srs_update_system_time_ms()
 
 string srs_dns_resolve(string host, int& family)
 {
-    printf("XXX-3: <%s>\n", host.c_str());
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family  = family;
@@ -174,11 +173,9 @@ string srs_dns_resolve(string host, int& family)
     freeaddrinfo(result);
 
     if(success) {
-       printf("XXX-3 OK!: <%s> -> %s\n", host.c_str(), address_string);
        family = result->ai_family;
        return string(address_string);
     }
-    puts("XXX-3-BAD!!!!");
     return "";
 }
 

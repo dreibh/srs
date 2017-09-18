@@ -69,11 +69,9 @@ int srs_socket_connect(string server, int port, int64_t timeout, st_netfd_t* pst
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     addrinfo* result  = NULL;
-    puts("XXX-4");
 
     if(getaddrinfo(server.c_str(), port_string, (const addrinfo*)&hints, &result) != 0) {
         ret = ERROR_SYSTEM_IP_INVALID;
-        puts("XXX-4-BAD!!!");
         srs_error("dns resolve server error, ip empty. ret=%d", ret);
         return ret;
     }
@@ -1358,7 +1356,6 @@ int srs_check_ipv6()
 
 string srs_get_local_ip(int fd)
 {
-    puts("XXX-5");
     // discovery client information
     sockaddr_storage addr;
     socklen_t addrlen = sizeof(addr);
@@ -1373,18 +1370,15 @@ string srs_get_local_ip(int fd)
                                     NULL, 0,
                                     NI_NUMERICHOST);    
     if(success != 0) {
-    puts("XXX-5-BAD!!!");
         return "";
     }
 
-    puts("XXX-5-OK.");
     srs_verbose("get local ip of client ip=%s, fd=%d", address_string, fd);
     return std::string(address_string);
 }
 
 int srs_get_local_port(int fd)
 {
-    puts("XXX-6");
     // discovery client information
     sockaddr_storage addr;
     socklen_t addrlen = sizeof(addr);
@@ -1403,18 +1397,12 @@ int srs_get_local_port(int fd)
          break;
     }
 
-    if(port == 0) {
-    puts("XXX-6-BAD!!!");
-    }
-    puts("XXX-6-OK.");
-
     srs_verbose("get local port of client port=%s, fd=%d", port, fd);
     return port;
 }
 
 string srs_get_peer_ip(int fd)
 {
-    puts("XXX-8");
     // discovery client information
     sockaddr_storage addr;
     socklen_t addrlen = sizeof(addr);
@@ -1429,11 +1417,9 @@ string srs_get_peer_ip(int fd)
                                     NULL, 0,
                                     NI_NUMERICHOST);    
     if(success != 0) {
-    puts("XXX-8-BAD!!!");
         return "";
     }
 
-    puts("XXX-8-OK.");
     srs_verbose("get peer ip of client ip=%s, fd=%d", address_string, fd);
     return std::string(address_string);
 }

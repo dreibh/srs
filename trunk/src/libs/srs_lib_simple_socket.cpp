@@ -137,16 +137,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_flags    = AI_NUMERICHOST;
         addrinfo* result  = NULL;
-        puts("XXX-2");
 
         if(getaddrinfo(server_ip, port_string, (const addrinfo*)&hints, &result) == 0) {
             if(::connect(skt->fd, result->ai_addr, result->ai_addrlen) < 0){
                 freeaddrinfo(result);
                 return ERROR_SOCKET_CONNECT;
             }
-        }
-        else {
-           puts("XXX-2-BAD!!!!");
         }
 
         freeaddrinfo(result);

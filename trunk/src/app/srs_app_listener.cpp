@@ -120,15 +120,11 @@ int SrsUdpListener::listen()
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags    = AI_NUMERICHOST;
     addrinfo* result  = NULL;
-    puts("XXX-9");
     if(getaddrinfo(ip.c_str(), port_string, (const addrinfo*)&hints, &result) != 0) {
         ret = ERROR_SYSTEM_IP_INVALID;
-        puts("XXX-9-BAD!!!");
         srs_error("bad address. ret=%d", ret);
         return ret;
     }
-    puts("XXX-9-LISTEN-OK!");
-    printf("XXX-9- F=%d\n", result->ai_family);
     
     if ((_fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol)) == -1) {
         ret = ERROR_SOCKET_CREATE;
@@ -242,15 +238,11 @@ int SrsTcpListener::listen()
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_NUMERICHOST;
     addrinfo* result  = NULL;
-    printf("XXX-9b <ip=%s>",ip.c_str());
     if(getaddrinfo(ip.c_str(), port_string, (const addrinfo*)&hints, &result) != 0) {
         ret = ERROR_SYSTEM_IP_INVALID;
-        puts("XXX-9b-BAD!!!");
         srs_error("bad address. ret=%d", ret);
         return ret;
     }
-    puts("XXX-9b-LISTEN-OK!");
-    printf("XXX-9b- F=%d\n", result->ai_family);
 
     if ((_fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol)) == -1) {
         ret = ERROR_SOCKET_CREATE;
