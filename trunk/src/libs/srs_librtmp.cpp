@@ -321,17 +321,15 @@ struct Context
      */
     const char* inet_ntop(int af, const void *src, char *dst, socklen_t size)
     {
+        puts("XXX-1");
         switch (af) {
         case AF_INET:
-            return (inet_ntop4( (unsigned char*)src, (char*)dst, size)); // ****
-    #ifdef AF_INET6
-        #error "IPv6 not supported"
-        //case AF_INET6:
-        //    return (char*)(inet_ntop6( (unsigned char*)src, (char*)dst, size)); // ****
-    #endif
+            return (inet_ntop4( (unsigned char*)src, (char*)dst, size));
+        case AF_INET6:
+           puts("XXX-1-v6");
+           return (char*)(inet_ntop6( (unsigned char*)src, (char*)dst, size));
         default:
-            // return (NULL); // ****
-            return 0 ; // ****
+            return (NULL);
         }
         /* NOTREACHED */
     }
