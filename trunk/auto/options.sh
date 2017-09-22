@@ -64,7 +64,8 @@ SRS_LOG_TRACE=RESERVED
 ################################################################
 # experts
 # donot compile ssl, use system ssl(-lssl) if required.
-SRS_USE_SYS_SSL=NO
+# !!! NEAT: Must use the same version that it used for libneat !!!
+SRS_USE_SYS_SSL=YES
 # enable memory watch, detect memory leak,
 # similar to gmc, should disable in release version for hurts performance.
 SRS_MEM_WATCH=NO
