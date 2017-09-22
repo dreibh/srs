@@ -205,6 +205,19 @@ int SrsTcpListener::fd()
     return _fd;
 }
 
+static const char* propertiesTCP = "{\
+    \"transport\": [\
+        {\
+            \"value\": \"MPTCP\",\
+            \"precedence\": 1\
+        },\
+        {\
+            \"value\": \"TCP\",\
+            \"precedence\": 1\
+        }\
+    ]\
+}";\
+
 srs_error_t SrsTcpListener::listen()
 {
     srs_error_t err = srs_success;
@@ -221,7 +234,7 @@ srs_error_t SrsTcpListener::listen()
         return srs_error_new(ERROR_SYSTEM_IP_INVALID, "bad address");
     }
     
-    if ((_fd = nsa_socket(result->ai_family, result->ai_socktype, result->ai_protocol, NULL)) == -1) {
+    if ((_fd = nsa_socket(result->ai_family, result->ai_socktype, result->ai_protocol, propertiesTCP)) == -1) {
         freeaddrinfo(result);
         return srs_error_new(ERROR_SOCKET_CREATE, "create linux socket error. ip=%s, port=%d", ip.c_str(), port);
     }

@@ -106,15 +106,29 @@ void srs_hijack_io_destroy(srs_hijack_io_t ctx)
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
     srs_freep(skt);
 }
+
+static const char* propertiesTCP = "{\
+    \"transport\": [\
+        {\
+            \"value\": \"MPTCP\",\
+            \"precedence\": 1\
+        },\
+        {\
+            \"value\": \"TCP\",\
+            \"precedence\": 1\
+        }\
+    ]\
+}";
+
 int srs_hijack_io_create_socket(srs_hijack_io_t ctx, srs_rtmp_t owner)
 {
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
 
     skt->family = AF_INET6;
-    skt->fd = ::nsa_socket(skt->family, SOCK_STREAM, 0, NULL);   // Try IPv6 first.
+    skt->fd = ::nsa_socket(skt->family, SOCK_STREAM, 0, propertiesTCP);   // Try IPv6 first.
     if (!SOCKET_VALID(skt->fd)) {
         skt->family = AF_INET;
-        skt->fd = ::nsa_socket(skt->family, SOCK_STREAM, 0, NULL);   // Try IPv4 instead, if IPv6 fails.
+        skt->fd = ::nsa_socket(skt->family, SOCK_STREAM, 0, propertiesTCP);   // Try IPv4 instead, if IPv6 fails.
     }
     if (!SOCKET_VALID(skt->fd)) {
         return ERROR_SOCKET_CREATE;

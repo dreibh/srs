@@ -104,6 +104,19 @@ srs_thread_t srs_thread_self()
     return (srs_thread_t)st_thread_self();
 }
 
+static const char* propertiesTCP = "{\
+    \"transport\": [\
+        {\
+            \"value\": \"MPTCP\",\
+            \"precedence\": 1\
+        },\
+        {\
+            \"value\": \"TCP\",\
+            \"precedence\": 1\
+        }\
+    ]\
+}";
+
 srs_error_t srs_socket_connect(string server, int port, int64_t tm, srs_netfd_t* pstfd)
 {
     st_utime_t timeout = ST_UTIME_NO_TIMEOUT;
@@ -125,7 +138,7 @@ srs_error_t srs_socket_connect(string server, int port, int64_t tm, srs_netfd_t*
         return srs_error_new(ERROR_SYSTEM_IP_INVALID, "dns resolve server error");
     }
     
-    int sock = nsa_socket(result->ai_family, result->ai_socktype, result->ai_protocol, NULL);
+    int sock = nsa_socket(result->ai_family, result->ai_socktype, result->ai_protocol, propertiesTCP);
     if(sock == -1){
         freeaddrinfo(result);
         return srs_error_new(ERROR_SOCKET_CREATE, "create socket");
