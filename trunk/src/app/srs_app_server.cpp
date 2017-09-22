@@ -660,7 +660,7 @@ srs_error_t SrsServer::acquire_pid_file()
     }
     
     // truncate file
-    if (ftruncate(fd, 0) != 0) {
+    if (nsa_ftruncate(fd, 0) != 0) {
         return srs_error_new(ERROR_SYSTEM_PID_TRUNCATE_FILE, "truncate pid file=%s", pid_file.c_str());
     }
     
