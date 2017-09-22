@@ -24,6 +24,7 @@
 #ifndef SRS_PROTOCOL_MESSAGE_ARRAY_HPP
 #define SRS_PROTOCOL_MESSAGE_ARRAY_HPP
 
+#include <neat-socketapi.h>
 #include <srs_core.hpp>
 
 class SrsSharedPtrMessage;
@@ -42,8 +43,8 @@ class SrsMessageArray
 public:
     /**
      * when user already send the msg in msgs, please set to NULL,
-     * for instance, msg= msgs.msgs[i], msgs.msgs[i]=NULL, send(msg),
-     * where send(msg) will always send and free it.
+     * for instance, msg= msgs.msgs[i], msgs.msgs[i]=NULL, nsa_send(msg),
+     * where nsa_send(msg) will always send and free it.
      */
     SrsSharedPtrMessage** msgs;
     int max;

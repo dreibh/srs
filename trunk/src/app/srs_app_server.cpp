@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_app_server.hpp>
 
 #include <sys/types.h>
@@ -356,10 +357,10 @@ SrsSignalManager::~SrsSignalManager()
     srs_close_stfd(signal_read_stfd);
     
     if (sig_pipe[0] > 0) {
-        ::close(sig_pipe[0]);
+        ::nsa_close(sig_pipe[0]);
     }
     if (sig_pipe[1] > 0) {
-        ::close(sig_pipe[1]);
+        ::nsa_close(sig_pipe[1]);
     }
     
     srs_freep(trd);
@@ -368,7 +369,7 @@ SrsSignalManager::~SrsSignalManager()
 srs_error_t SrsSignalManager::initialize()
 {
     /* Create signal pipe */
-    if (pipe(sig_pipe) < 0) {
+    if (nsa_pipe(sig_pipe) < 0) {
         return srs_error_new(ERROR_SYSTEM_CREATE_PIPE, "create pipe");
     }
     
@@ -451,7 +452,7 @@ void SrsSignalManager::sig_catcher(int signo)
     
     /* write() is reentrant/async-safe */
     int fd = SrsSignalManager::instance->sig_pipe[1];
-    write(fd, &signo, sizeof(int));
+    nsa_write(fd, &signo, sizeof(int));
     
     errno = err;
 }
@@ -510,7 +511,7 @@ void SrsServer::destroy()
 #endif
     
     if (pid_fd > 0) {
-        ::close(pid_fd);
+        ::nsa_close(pid_fd);
         pid_fd = -1;
     }
     
@@ -638,7 +639,7 @@ srs_error_t SrsServer::acquire_pid_file()
     
     int fd;
     // open pid file
-    if ((fd = ::open(pid_file.c_str(), O_WRONLY | O_CREAT, mode)) == -1) {
+    if ((fd = ::nsa_open(pid_file.c_str(), O_WRONLY | O_CREAT, mode)) == -1) {
         return srs_error_new(ERROR_SYSTEM_PID_ACQUIRE, "open pid file=%s", pid_file.c_str());
     }
     
@@ -650,7 +651,7 @@ srs_error_t SrsServer::acquire_pid_file()
     lock.l_whence = SEEK_SET;  // SEEK_SET, SEEK_CUR, SEEK_END
     lock.l_len = 0;
     
-    if (fcntl(fd, F_SETLK, &lock) == -1) {
+    if (nsa_fcntl(fd, F_SETLK, &lock) == -1) {
         if(errno == EACCES || errno == EAGAIN) {
             srs_error("srs is already running!");
             return srs_error_new(ERROR_SYSTEM_PID_ALREADY_RUNNING, "srs is already running");
@@ -665,17 +666,17 @@ srs_error_t SrsServer::acquire_pid_file()
     
     // write the pid
     string pid = srs_int2str(getpid());
-    if (write(fd, pid.c_str(), pid.length()) != (int)pid.length()) {
+    if (nsa_write(fd, pid.c_str(), pid.length()) != (int)pid.length()) {
         return srs_error_new(ERROR_SYSTEM_PID_WRITE_FILE, "write pid=%d to file=%s", pid.c_str(), pid_file.c_str());
     }
     
     // auto close when fork child process.
     int val;
-    if ((val = fcntl(fd, F_GETFD, 0)) < 0) {
+    if ((val = nsa_fcntl(fd, F_GETFD, 0)) < 0) {
         return srs_error_new(ERROR_SYSTEM_PID_GET_FILE_INFO, "fcntl fd=%d", fd);
     }
     val |= FD_CLOEXEC;
-    if (fcntl(fd, F_SETFD, val) < 0) {
+    if (nsa_fcntl(fd, F_SETFD, val) < 0) {
         return srs_error_new(ERROR_SYSTEM_PID_SET_FILE_INFO, "lock file=%s fd=%d", pid_file.c_str(), fd);
     }
     
@@ -1236,11 +1237,11 @@ srs_error_t SrsServer::fd2conn(SrsListenerType type, srs_netfd_t stfd, SrsConnec
     // @see https://github.com/ossrs/srs/issues/518
     if (true) {
         int val;
-        if ((val = fcntl(fd, F_GETFD, 0)) < 0) {
+        if ((val = nsa_fcntl(fd, F_GETFD, 0)) < 0) {
             return srs_error_new(ERROR_SYSTEM_PID_GET_FILE_INFO, "fnctl F_GETFD error! fd=%d", fd);
         }
         val |= FD_CLOEXEC;
-        if (fcntl(fd, F_SETFD, val) < 0) {
+        if (nsa_fcntl(fd, F_SETFD, val) < 0) {
             return srs_error_new(ERROR_SYSTEM_PID_SET_FILE_INFO, "fcntl F_SETFD error! fd=%d", fd);
         }
     }
@@ -1299,7 +1300,7 @@ srs_error_t SrsServer::on_reload_pid()
     srs_error_t err = srs_success;
     
     if (pid_fd > 0) {
-        ::close(pid_fd);
+        ::nsa_close(pid_fd);
         pid_fd = -1;
     }
     

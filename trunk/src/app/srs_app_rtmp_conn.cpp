@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_app_rtmp_conn.hpp>
 
 #include <stdlib.h>
@@ -1270,7 +1271,7 @@ void SrsRtmpConn::change_mw_sleep(int sleep_ms)
     int fd = srs_netfd_fileno(stfd);
     int onb_sbuf = 0;
     socklen_t sock_buf_size = sizeof(int);
-    getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &onb_sbuf, &sock_buf_size);
+    nsa_getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &onb_sbuf, &sock_buf_size);
     
 #ifdef SRS_PERF_MW_SO_SNDBUF
     // the bytes:
@@ -1295,10 +1296,10 @@ void SrsRtmpConn::change_mw_sleep(int sleep_ms)
 #endif
     
     // set the socket send buffer when required larger buffer
-    if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &nb_sbuf, sock_buf_size) < 0) {
+    if (nsa_setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &nb_sbuf, sock_buf_size) < 0) {
         srs_warn("set sock SO_SENDBUF=%d failed.", nb_sbuf);
     }
-    getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &nb_sbuf, &sock_buf_size);
+    nsa_getsockopt(fd, SOL_SOCKET, SO_SNDBUF, &nb_sbuf, &sock_buf_size);
     
     srs_trace("mw changed sleep %d=>%d, max_msgs=%d, esbuf=%d, sbuf %d=>%d, realtime=%d",
               mw_sleep, sleep_ms, SRS_PERF_MW_MSGS, socket_buffer_size,
@@ -1324,14 +1325,14 @@ void SrsRtmpConn::set_sock_options()
         socklen_t nb_v = sizeof(int);
         
         int ov = 0;
-        getsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &ov, &nb_v);
+        nsa_getsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &ov, &nb_v);
         
         int v = tcp_nodelay;
         // set the socket send buffer when required larger buffer
-        if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &v, nb_v) < 0) {
+        if (nsa_setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &v, nb_v) < 0) {
             srs_warn("set sock TCP_NODELAY=%d failed.", v);
         }
-        getsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &v, &nb_v);
+        nsa_getsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &v, &nb_v);
         
         srs_trace("set TCP_NODELAY %d=>%d", ov, v);
 #else

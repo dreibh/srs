@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_core.hpp>
 
 #include <stdlib.h>
@@ -190,6 +191,8 @@ srs_error_t do_main(int argc, char** argv)
 }
 
 int main(int argc, char** argv) {
+    nsa_init();
+
     srs_error_t err = do_main(argc, argv);
     
     if (err != srs_success) {
@@ -198,6 +201,7 @@ int main(int argc, char** argv) {
     
     int ret = srs_error_code(err);
     srs_freep(err);
+    nsa_cleanup();
     return ret;
 }
 

@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_app_recv_thread.hpp>
 
 #include <srs_rtmp_stack.hpp>
@@ -541,14 +542,14 @@ void SrsPublishRecvThread::set_socket_buffer(int sleep_ms)
     int fd = mr_fd;
     int onb_rbuf = 0;
     socklen_t sock_buf_size = sizeof(int);
-    getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &onb_rbuf, &sock_buf_size);
+    nsa_getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &onb_rbuf, &sock_buf_size);
     
     // socket recv buffer, system will double it.
     int nb_rbuf = socket_buffer_size / 2;
-    if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &nb_rbuf, sock_buf_size) < 0) {
+    if (nsa_setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &nb_rbuf, sock_buf_size) < 0) {
         srs_warn("set sock SO_RCVBUF=%d failed.", nb_rbuf);
     }
-    getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &nb_rbuf, &sock_buf_size);
+    nsa_getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &nb_rbuf, &sock_buf_size);
     
     srs_trace("mr change sleep %d=>%d, erbuf=%d, rbuf %d=>%d, sbytes=%d, realtime=%d",
               mr_sleep, sleep_ms, socket_buffer_size, onb_rbuf, nb_rbuf, 

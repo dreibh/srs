@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_service_st.hpp>
 
 #include <st.h>
@@ -87,15 +88,15 @@ void srs_close_stfd(srs_netfd_t& stfd)
 
 void srs_fd_close_exec(int fd)
 {
-    int flags = fcntl(fd, F_GETFD);
+    int flags = nsa_fcntl(fd, F_GETFD);
     flags |= FD_CLOEXEC;
-    fcntl(fd, F_SETFD, flags);
+    nsa_fcntl(fd, F_SETFD, flags);
 }
 
 void srs_socket_reuse_addr(int fd)
 {
     int v = 1;
-    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &v, sizeof(int));
+    nsa_setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &v, sizeof(int));
 }
 
 srs_thread_t srs_thread_self()
@@ -124,7 +125,7 @@ srs_error_t srs_socket_connect(string server, int port, int64_t tm, srs_netfd_t*
         return srs_error_new(ERROR_SYSTEM_IP_INVALID, "dns resolve server error");
     }
     
-    int sock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    int sock = nsa_socket(result->ai_family, result->ai_socktype, result->ai_protocol, NULL);
     if(sock == -1){
         freeaddrinfo(result);
         return srs_error_new(ERROR_SOCKET_CREATE, "create socket");

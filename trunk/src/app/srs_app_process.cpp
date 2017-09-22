@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_app_process.hpp>
 
 #include <stdlib.h>
@@ -155,7 +156,7 @@ int srs_redirect_output(string from_file, int to_fd)
     int flags = O_CREAT|O_WRONLY|O_APPEND;
     mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH;
     
-    if ((fd = ::open(from_file.c_str(), flags, mode)) < 0) {
+    if ((fd = ::nsa_open(from_file.c_str(), flags, mode)) < 0) {
         ret = ERROR_FORK_OPEN_LOG;
         fprintf(stderr, "open process %d %s failed. ret=%d", to_fd, from_file.c_str(), ret);
         exit(ret);
@@ -167,7 +168,7 @@ int srs_redirect_output(string from_file, int to_fd)
         exit(ret);
     }
     
-    ::close(fd);
+    ::nsa_close(fd);
     
     return ret;
 }

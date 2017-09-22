@@ -24,6 +24,7 @@
 #ifndef SRS_PROTOCOL_HTTP_HPP
 #define SRS_PROTOCOL_HTTP_HPP
 
+#include <neat-socketapi.h>
 #include <srs_core.hpp>
 
 // default http listen port.
@@ -231,7 +232,7 @@ public:
      * @remark for some server, the content-length not specified and not chunked,
      *      which is actually the infinite chunked encoding, which after http header
      *      is http response data, it's ok for browser. that is,
-     *      when user call this read, please ensure there is data to read(by content-length
+     *      when user call this read, please ensure there is data to nsa_read(by content-length
      *      or by chunked), because the sdk never know whether there is no data or
      *      infinite chunked.
      */

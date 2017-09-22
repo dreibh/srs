@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_app_listener.hpp>
 
 #include <sys/types.h>
@@ -93,7 +94,7 @@ SrsUdpListener::~SrsUdpListener()
     
     // st does not close it sometimes,
     // close it manually.
-    close(_fd);
+    nsa_close(_fd);
     
     srs_freepa(buf);
 }
@@ -124,7 +125,7 @@ srs_error_t SrsUdpListener::listen()
         return srs_error_new(ERROR_SYSTEM_IP_INVALID, "bad address");
     }
     
-    if ((_fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol)) == -1) {
+    if ((_fd = nsa_socket(result->ai_family, result->ai_socktype, result->ai_protocol, NULL)) == -1) {
         freeaddrinfo(result);
         return srs_error_new(ERROR_SOCKET_CREATE, "create linux socket error. ip=%s, port=%d", ip.c_str(), port);
     }
@@ -132,7 +133,7 @@ srs_error_t SrsUdpListener::listen()
     srs_fd_close_exec(_fd);
     srs_socket_reuse_addr(_fd);
     
-    if (bind(_fd, result->ai_addr, result->ai_addrlen) == -1) {
+    if (nsa_bind(_fd, result->ai_addr, result->ai_addrlen, NULL, 0) == -1) {
         freeaddrinfo(result);
         return srs_error_new(ERROR_SOCKET_BIND, "bind socket error. ep=%s:%d", ip.c_str(), port);;
     }
@@ -220,7 +221,7 @@ srs_error_t SrsTcpListener::listen()
         return srs_error_new(ERROR_SYSTEM_IP_INVALID, "bad address");
     }
     
-    if ((_fd = socket(result->ai_family, result->ai_socktype, result->ai_protocol)) == -1) {
+    if ((_fd = nsa_socket(result->ai_family, result->ai_socktype, result->ai_protocol, NULL)) == -1) {
         freeaddrinfo(result);
         return srs_error_new(ERROR_SOCKET_CREATE, "create linux socket error. ip=%s, port=%d", ip.c_str(), port);
     }
@@ -228,13 +229,13 @@ srs_error_t SrsTcpListener::listen()
     srs_fd_close_exec(_fd);
     srs_socket_reuse_addr(_fd);
     
-    if (bind(_fd, result->ai_addr, result->ai_addrlen) == -1) {
+    if (nsa_bind(_fd, result->ai_addr, result->ai_addrlen, NULL, 0) == -1) {
         freeaddrinfo(result);
         return srs_error_new(ERROR_SOCKET_BIND, "bind socket error. ep=%s:%d", ip.c_str(), port);;
     }
     freeaddrinfo(result);
 
-    if (::listen(_fd, SERVER_LISTEN_BACKLOG) == -1) {
+    if (::nsa_listen(_fd, SERVER_LISTEN_BACKLOG) == -1) {
         return srs_error_new(ERROR_SOCKET_LISTEN, "listen socket");
     }
     

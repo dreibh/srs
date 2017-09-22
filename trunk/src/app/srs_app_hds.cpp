@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_app_hds.hpp>
 
 #ifdef SRS_AUTO_HDS
@@ -156,18 +157,18 @@ public:
         data = string(ss.data(), ss.size()) + data;
         
         const char *file_path = path.c_str();
-        int fd = open(file_path, O_WRONLY | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
+        int fd = nsa_open(file_path, O_WRONLY | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
         if (fd < 0) {
             srs_error("open fragment file failed, path=%s", file_path);
             return -1;
         }
         
-        if (write(fd, data.data(), data.size()) != (int)data.size()) {
+        if (nsa_write(fd, data.data(), data.size()) != (int)data.size()) {
             srs_error("write fragment file failed, path=", file_path);
-            close(fd);
+            nsa_close(fd);
             return -1;
         }
-        close(fd);
+        nsa_close(fd);
         
         srs_trace("build fragment success=%s", file_path);
         
@@ -456,7 +457,7 @@ int SrsHds::flush_mainfest()
     }
     string path = dir + "/" + hds_req->stream + ".f4m";
     
-    int fd = open(path.c_str(), O_WRONLY | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
+    int fd = nsa_open(path.c_str(), O_WRONLY | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
     if (fd < 0) {
         srs_error("open manifest file failed, path=%s", path.c_str());
         ret = ERROR_HDS_OPEN_F4M_FAILED;
@@ -464,13 +465,13 @@ int SrsHds::flush_mainfest()
     }
     
     int f4m_size = strlen(buf);
-    if (write(fd, buf, f4m_size) != f4m_size) {
+    if (nsa_write(fd, buf, f4m_size) != f4m_size) {
         srs_error("write manifest file failed, path=", path.c_str());
-        close(fd);
+        nsa_close(fd);
         ret = ERROR_HDS_WRITE_F4M_FAILED;
         return ret;
     }
-    close(fd);
+    nsa_close(fd);
     
     srs_trace("build manifest success=%s", path.c_str());
     
@@ -713,20 +714,20 @@ int SrsHds::flush_bootstrap()
     
     string path = _srs_config->get_hds_path(hds_req->vhost) + "/" + hds_req->app + "/" + hds_req->stream +".abst";
     
-    int fd = open(path.c_str(), O_WRONLY | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
+    int fd = nsa_open(path.c_str(), O_WRONLY | O_CREAT, S_IRWXU | S_IRGRP | S_IROTH);
     if (fd < 0) {
         srs_error("open bootstrap file failed, path=%s", path.c_str());
         ret = ERROR_HDS_OPEN_BOOTSTRAP_FAILED;
         return ret;
     }
     
-    if (write(fd, start_abst, size_abst) != size_abst) {
+    if (nsa_write(fd, start_abst, size_abst) != size_abst) {
         srs_error("write bootstrap file failed, path=", path.c_str());
-        close(fd);
+        nsa_close(fd);
         ret = ERROR_HDS_WRITE_BOOTSTRAP_FAILED;
         return ret;
     }
-    close(fd);
+    nsa_close(fd);
     
     srs_trace("build bootstrap success=%s", path.c_str());
     

@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_app_utility.hpp>
 
 #include <sys/types.h>
@@ -1119,7 +1120,7 @@ string srs_get_local_ip(int fd)
     // discovery client information
     sockaddr_storage addr;
     socklen_t addrlen = sizeof(addr);
-    if (getsockname(fd, (sockaddr*)&addr, &addrlen) == -1) {
+    if (nsa_getsockname(fd, (sockaddr*)&addr, &addrlen) == -1) {
         return "";
     }
     srs_verbose("get local ip success.");
@@ -1142,7 +1143,7 @@ int srs_get_local_port(int fd)
     // discovery client information
     sockaddr_storage addr;
     socklen_t addrlen = sizeof(addr);
-    if (getsockname(fd, (sockaddr*)&addr, &addrlen) == -1) {
+    if (nsa_getsockname(fd, (sockaddr*)&addr, &addrlen) == -1) {
         return 0;
     }
     srs_verbose("get local ip success.");
@@ -1166,7 +1167,7 @@ string srs_get_peer_ip(int fd)
     // discovery client information
     sockaddr_storage addr;
     socklen_t addrlen = sizeof(addr);
-    if (getsockname(fd, (sockaddr*)&addr, &addrlen) == -1) {
+    if (nsa_getsockname(fd, (sockaddr*)&addr, &addrlen) == -1) {
         return "";
     }
     srs_verbose("get peer ip success.");

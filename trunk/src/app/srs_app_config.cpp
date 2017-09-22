@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_app_config.hpp>
 
 #include <unistd.h>
@@ -3996,7 +3997,7 @@ srs_error_t SrsConfig::check_number_connections()
         int max_open_files = (int)sysconf(_SC_OPEN_MAX);
         int nb_canbe = max_open_files - nb_consumed_fds - 1;
         
-        // for each play connections, we open a pipe(2fds) to convert SrsConsumver to io,
+        // for each play connections, we open a nsa_pipe(2fds) to convert SrsConsumver to io,
         // refine performance, @see: https://github.com/ossrs/srs/issues/194
         if (nb_total >= max_open_files) {
             srs_error("invalid max_connections=%d, required=%d, system limit to %d, "

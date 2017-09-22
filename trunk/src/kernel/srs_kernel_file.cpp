@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_kernel_file.hpp>
 
 // for srs-librtmp, @see https://github.com/ossrs/srs/issues/213
@@ -59,7 +60,7 @@ int SrsFileWriter::open(string p)
     int flags = O_CREAT|O_WRONLY|O_TRUNC;
     mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH;
     
-    if ((fd = ::open(p.c_str(), flags, mode)) < 0) {
+    if ((fd = ::nsa_open(p.c_str(), flags, mode)) < 0) {
         ret = ERROR_SYSTEM_FILE_OPENE;
         srs_error("open file %s failed. ret=%d", p.c_str(), ret);
         return ret;
@@ -83,7 +84,7 @@ int SrsFileWriter::open_append(string p)
     int flags = O_APPEND|O_WRONLY;
     mode_t mode = S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH;
     
-    if ((fd = ::open(p.c_str(), flags, mode)) < 0) {
+    if ((fd = ::nsa_open(p.c_str(), flags, mode)) < 0) {
         ret = ERROR_SYSTEM_FILE_OPENE;
         srs_error("open file %s failed. ret=%d", p.c_str(), ret);
         return ret;
@@ -102,7 +103,7 @@ void SrsFileWriter::close()
         return;
     }
     
-    if (::close(fd) < 0) {
+    if (::nsa_close(fd) < 0) {
         ret = ERROR_SYSTEM_FILE_CLOSE;
         srs_error("close file %s failed. ret=%d", path.c_str(), ret);
         return;
@@ -119,13 +120,13 @@ bool SrsFileWriter::is_open()
 
 void SrsFileWriter::seek2(int64_t offset)
 {
-    off_t r0 = ::lseek(fd, (off_t)offset, SEEK_SET);
+    off_t r0 = ::nsa_lseek(fd, (off_t)offset, SEEK_SET);
     srs_assert(r0 != -1);
 }
 
 int64_t SrsFileWriter::tellg()
 {
-    return (int64_t)::lseek(fd, 0, SEEK_CUR);
+    return (int64_t)::nsa_lseek(fd, 0, SEEK_CUR);
 }
 
 int SrsFileWriter::write(void* buf, size_t count, ssize_t* pnwrite)
@@ -134,7 +135,7 @@ int SrsFileWriter::write(void* buf, size_t count, ssize_t* pnwrite)
     
     ssize_t nwrite;
     // TODO: FIXME: use st_write.
-    if ((nwrite = ::write(fd, buf, count)) < 0) {
+    if ((nwrite = ::nsa_write(fd, buf, count)) < 0) {
         ret = ERROR_SYSTEM_FILE_WRITE;
         srs_error("write to file %s failed. ret=%d", path.c_str(), ret);
         return ret;
@@ -170,7 +171,7 @@ int SrsFileWriter::writev(const iovec* iov, int iovcnt, ssize_t* pnwrite)
 
 int SrsFileWriter::lseek(off_t offset, int whence, off_t* seeked)
 {
-    off_t sk = ::lseek(fd, offset, whence);
+    off_t sk = ::nsa_lseek(fd, offset, whence);
     if (sk < 0) {
         return ERROR_SYSTEM_FILE_SEEK;
     }
@@ -201,7 +202,7 @@ int SrsFileReader::open(string p)
         return ret;
     }
     
-    if ((fd = ::open(p.c_str(), O_RDONLY)) < 0) {
+    if ((fd = ::nsa_open(p.c_str(), O_RDONLY, 0)) < 0) {
         ret = ERROR_SYSTEM_FILE_OPENE;
         srs_error("open file %s failed. ret=%d", p.c_str(), ret);
         return ret;
@@ -220,7 +221,7 @@ void SrsFileReader::close()
         return;
     }
     
-    if (::close(fd) < 0) {
+    if (::nsa_close(fd) < 0) {
         ret = ERROR_SYSTEM_FILE_CLOSE;
         srs_error("close file %s failed. ret=%d", path.c_str(), ret);
         return;
@@ -237,26 +238,26 @@ bool SrsFileReader::is_open()
 
 int64_t SrsFileReader::tellg()
 {
-    return (int64_t)::lseek(fd, 0, SEEK_CUR);
+    return (int64_t)::nsa_lseek(fd, 0, SEEK_CUR);
 }
 
 void SrsFileReader::skip(int64_t size)
 {
-    off_t r0 = ::lseek(fd, (off_t)size, SEEK_CUR);
+    off_t r0 = ::nsa_lseek(fd, (off_t)size, SEEK_CUR);
     srs_assert(r0 != -1);
 }
 
 int64_t SrsFileReader::seek2(int64_t offset)
 {
-    return (int64_t)::lseek(fd, (off_t)offset, SEEK_SET);
+    return (int64_t)::nsa_lseek(fd, (off_t)offset, SEEK_SET);
 }
 
 int64_t SrsFileReader::filesize()
 {
     int64_t cur = tellg();
-    int64_t size = (int64_t)::lseek(fd, 0, SEEK_END);
+    int64_t size = (int64_t)::nsa_lseek(fd, 0, SEEK_END);
     
-    off_t r0 = ::lseek(fd, (off_t)cur, SEEK_SET);
+    off_t r0 = ::nsa_lseek(fd, (off_t)cur, SEEK_SET);
     srs_assert(r0 != -1);
     
     return size;
@@ -268,7 +269,7 @@ int SrsFileReader::read(void* buf, size_t count, ssize_t* pnread)
     
     ssize_t nread;
     // TODO: FIXME: use st_read.
-    if ((nread = ::read(fd, buf, count)) < 0) {
+    if ((nread = ::nsa_read(fd, buf, count)) < 0) {
         ret = ERROR_SYSTEM_FILE_READ;
         srs_error("read from file %s failed. ret=%d", path.c_str(), ret);
         return ret;
@@ -288,7 +289,7 @@ int SrsFileReader::read(void* buf, size_t count, ssize_t* pnread)
 
 int SrsFileReader::lseek(off_t offset, int whence, off_t* seeked)
 {
-    off_t sk = ::lseek(fd, offset, whence);
+    off_t sk = ::nsa_lseek(fd, offset, whence);
     if (sk < 0) {
         return ERROR_SYSTEM_FILE_SEEK;
     }

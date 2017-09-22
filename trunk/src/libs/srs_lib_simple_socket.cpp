@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_lib_simple_socket.hpp>
 
 #include <srs_kernel_error.hpp>
@@ -34,7 +35,7 @@
 #define SOCKET_RESET(fd) fd = -1; (void)0
 #define SOCKET_CLOSE(fd) \
     if (fd > 0) {\
-        ::close(fd); \
+        ::nsa_close(fd); \
         fd = -1; \
     } \
     (void)0
@@ -110,10 +111,10 @@ int srs_hijack_io_create_socket(srs_hijack_io_t ctx, srs_rtmp_t owner)
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
 
     skt->family = AF_INET6;
-    skt->fd = ::socket(skt->family, SOCK_STREAM, 0);   // Try IPv6 first.
+    skt->fd = ::nsa_socket(skt->family, SOCK_STREAM, 0, NULL);   // Try IPv6 first.
     if (!SOCKET_VALID(skt->fd)) {
         skt->family = AF_INET;
-        skt->fd = ::socket(skt->family, SOCK_STREAM, 0);   // Try IPv4 instead, if IPv6 fails.
+        skt->fd = ::nsa_socket(skt->family, SOCK_STREAM, 0, NULL);   // Try IPv4 instead, if IPv6 fails.
     }
     if (!SOCKET_VALID(skt->fd)) {
         return ERROR_SOCKET_CREATE;
@@ -135,7 +136,7 @@ int srs_hijack_io_connect(srs_hijack_io_t ctx, const char* server_ip, int port)
     addrinfo* result  = NULL;
 
     if(getaddrinfo(server_ip, port_string, (const addrinfo*)&hints, &result) == 0) {
-        if(::connect(skt->fd, result->ai_addr, result->ai_addrlen) < 0){
+        if(::nsa_connect(skt->fd, result->ai_addr, result->ai_addrlen, NULL, 0) < 0){
             freeaddrinfo(result);
             return ERROR_SOCKET_CONNECT;
         }
@@ -150,7 +151,7 @@ int srs_hijack_io_read(srs_hijack_io_t ctx, void* buf, size_t size, ssize_t* nre
     
     int ret = ERROR_SUCCESS;
     
-    ssize_t nb_read = ::recv(skt->fd, (char*)buf, size, 0);
+    ssize_t nb_read = ::nsa_recv(skt->fd, (char*)buf, size, 0);
     
     if (nread) {
         *nread = nb_read;
@@ -189,7 +190,7 @@ int srs_hijack_io_set_recv_timeout(srs_hijack_io_t ctx, int64_t tm)
     }
     
     struct timeval tv = { sec , usec };
-    if (setsockopt(skt->fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == -1) {
+    if (nsa_setsockopt(skt->fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == -1) {
         return SOCKET_ERRNO();
     }
     
@@ -222,7 +223,7 @@ int srs_hijack_io_set_send_timeout(srs_hijack_io_t ctx, int64_t tm)
     }
     
     struct timeval tv = { sec , usec };
-    if (setsockopt(skt->fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) == -1) {
+    if (nsa_setsockopt(skt->fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) == -1) {
         return SOCKET_ERRNO();
     }
     
@@ -306,7 +307,7 @@ int srs_hijack_io_write(srs_hijack_io_t ctx, void* buf, size_t size, ssize_t* nw
     
     int ret = ERROR_SUCCESS;
     
-    ssize_t nb_write = ::send(skt->fd, (char*)buf, size, 0);
+    ssize_t nb_write = ::nsa_send(skt->fd, (char*)buf, size, 0);
     
     if (nwrite) {
         *nwrite = nb_write;

@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_app_log.hpp>
 
 #include <stdarg.h>
@@ -59,7 +60,7 @@ SrsFastLog::~SrsFastLog()
     srs_freepa(log_data);
     
     if (fd > 0) {
-        ::close(fd);
+        ::nsa_close(fd);
         fd = -1;
     }
     
@@ -84,7 +85,7 @@ srs_error_t SrsFastLog::initialize()
 void SrsFastLog::reopen()
 {
     if (fd > 0) {
-        ::close(fd);
+        ::nsa_close(fd);
     }
     
     if (!log_to_file_tank) {
@@ -226,7 +227,7 @@ srs_error_t SrsFastLog::on_reload_log_tank()
     }
     
     if (fd > 0) {
-        ::close(fd);
+        ::nsa_close(fd);
     }
     open_log_file();
     
@@ -259,7 +260,7 @@ srs_error_t SrsFastLog::on_reload_log_file()
     }
     
     if (fd > 0) {
-        ::close(fd);
+        ::nsa_close(fd);
     }
     open_log_file();
     
@@ -302,7 +303,7 @@ void SrsFastLog::write_log(int& fd, char *str_log, int size, int level)
     
     // write log to file.
     if (fd > 0) {
-        ::write(fd, str_log, size);
+        ::nsa_write(fd, str_log, size);
     }
 }
 
@@ -318,10 +319,10 @@ void SrsFastLog::open_log_file()
         return;
     }
     
-    fd = ::open(filename.c_str(), O_RDWR | O_APPEND);
+    fd = ::nsa_open(filename.c_str(), O_RDWR | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
     
     if(fd == -1 && errno == ENOENT) {
-        fd = open(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+        fd = nsa_open(filename.c_str(), O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
     }
 }
 

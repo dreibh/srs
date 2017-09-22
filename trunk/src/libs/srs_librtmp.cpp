@@ -21,6 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <neat-socketapi.h>
 #include <srs_librtmp.hpp>
 
 #include <stdlib.h>
@@ -220,7 +221,7 @@ ssize_t writev(int fd, const struct iovec *iov, int iovcnt)
     for (int i = 0; i < iovcnt; i++) {
         const struct iovec* current = iov + i;
         
-        int nsent = ::send(fd, (char*)current->iov_base, current->iov_len, 0);
+        int nsent = ::nsa_send(fd, (char*)current->iov_base, current->iov_len, 0);
         if (nsent < 0) {
             return nsent;
         }
