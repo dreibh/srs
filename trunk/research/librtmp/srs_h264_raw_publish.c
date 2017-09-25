@@ -25,6 +25,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <neat-socketapi.h>
+
 // for open h264 raw file.
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -99,13 +101,13 @@ int main(int argc, char** argv)
     srs_human_trace("raw_file=%s, rtmp_url=%s, fps=%.2f", raw_file, rtmp_url, fps);
     
     // open file
-    int raw_fd = open(raw_file, O_RDONLY);
+    int raw_fd = nsa_open(raw_file, O_RDONLY, 0);
     if (raw_fd < 0) {
         srs_human_trace("open h264 raw file %s failed.", raw_file);
         goto rtmp_destroy;
     }
     
-    off_t file_size = lseek(raw_fd, 0, SEEK_END);
+    off_t file_size = nsa_lseek(raw_fd, 0, SEEK_END);
     if (file_size <= 0) {
         srs_human_trace("h264 raw file %s empty.", raw_file);
         goto rtmp_destroy;
@@ -118,9 +120,9 @@ int main(int argc, char** argv)
         goto rtmp_destroy;
     }
     
-    lseek(raw_fd, 0, SEEK_SET);
+    nsa_lseek(raw_fd, 0, SEEK_SET);
     ssize_t nb_read = 0;
-    if ((nb_read = read(raw_fd, h264_raw, file_size)) != file_size) {
+    if ((nb_read = nsa_read(raw_fd, h264_raw, file_size)) != file_size) {
         srs_human_trace("buffer %s failed, expect=%dKB, actual=%dKB.",
                         raw_file, (int)(file_size / 1024), (int)(nb_read / 1024));
         goto rtmp_destroy;
@@ -195,7 +197,7 @@ int main(int argc, char** argv)
     
 rtmp_destroy:
     srs_rtmp_destroy(rtmp);
-    close(raw_fd);
+    nsa_close(raw_fd);
     free(h264_raw);
     
     return 0;
