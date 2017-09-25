@@ -1339,7 +1339,7 @@ ST_HIDDEN int _st_epoll_is_supported(void)
     ev.events = EPOLLIN;
     ev.data.ptr = NULL;
     /* Guaranteed to fail */
-    nsa_epoll_ctl(-1, EPOLL_CTL_ADD, -1, &ev);
+    epoll_ctl(-1, EPOLL_CTL_ADD, -1, &ev);
 
     return (errno != ENOSYS);
 }

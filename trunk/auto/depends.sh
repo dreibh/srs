@@ -447,6 +447,11 @@ fi
 if [ $SRS_EXPORT_LIBRTMP_PROJECT = NO ]; then
     # check the cross build flag file, if flag changed, need to rebuild the st.
     _ST_MAKE=linux-debug && _ST_EXTRA_CFLAGS="-DMD_HAVE_EPOLL"
+
+# !!! NEAT !!!    
+    _ST_MAKE=linux-debug && _ST_EXTRA_CFLAGS=""
+# !!! NEAT !!!
+    
     # for osx, use darwin for st, donot use epoll.
     if [ $OS_IS_OSX = YES ]; then
         _ST_MAKE=darwin-debug && _ST_EXTRA_CFLAGS="-DMD_HAVE_KQUEUE -I/usr/local/include"
@@ -476,12 +481,21 @@ if [ $SRS_EXPORT_LIBRTMP_PROJECT = NO ]; then
         else
             echo "Building state-threads.";
             (
+                # --- NEAT!!! ---
                 rm -rf ${SRS_OBJS}/state-threads-1.9.1 && cd ${SRS_OBJS} &&
-                tar xf ../3rdparty/state-threads-1.9.1.tar.gz && cd state-threads-1.9.1 && chmod +w * &&
+                cp -r ../3rdparty/state-threads-1.9.1-neat state-threads-1.9.1 && cd state-threads-1.9.1 && chmod +w * &&
                 make ${_ST_MAKE} EXTRA_CFLAGS="${_ST_EXTRA_CFLAGS}" &&
                 cd .. && rm -f st && ln -sf state-threads-1.9.1/obj st &&
                 rm -f state-threads && ln -sf state-threads-1.9.1 state-threads &&
                 cd .. && rm -f ${SRS_OBJS}/_flag.st.cross.build.tmp
+                # --- NEAT!!! ---
+            
+#                 rm -rf ${SRS_OBJS}/state-threads-1.9.1 && cd ${SRS_OBJS} &&
+#                 tar xf ../3rdparty/state-threads-1.9.1.tar.gz && cd state-threads-1.9.1 && chmod +w * &&
+#                 make ${_ST_MAKE} EXTRA_CFLAGS="${_ST_EXTRA_CFLAGS}" &&
+#                 cd .. && rm -f st && ln -sf state-threads-1.9.1/obj st &&
+#                 rm -f state-threads && ln -sf state-threads-1.9.1 state-threads &&
+#                 cd .. && rm -f ${SRS_OBJS}/_flag.st.cross.build.tmp
             )
         fi
     fi

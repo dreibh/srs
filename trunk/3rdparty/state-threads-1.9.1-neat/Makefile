@@ -186,7 +186,9 @@ SFLAGS      = -fPIC
 LDFLAGS     = -shared -soname=$(SONAME) -lc
 OTHER_FLAGS = -Wall
 ifeq ($(shell test -f /usr/include/sys/epoll.h && echo yes), yes)
-DEFINES     += -DMD_HAVE_EPOLL
+# !!! NEAT !!!
+# DEFINES     += -DMD_HAVE_EPOLL
+# !!! NEAT !!!
 endif
 endif
 
@@ -223,6 +225,10 @@ CFLAGS     += -m64
 LDFLAGS    += -m64
 endif
 endif
+
+# !!! NEAT !!!
+LDFLAGS += -lneat-socketapi
+# !!! NEAT !!!
 
 #
 # End of platform section.
