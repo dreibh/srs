@@ -1123,19 +1123,16 @@ string srs_get_local_ip(int fd)
     if (nsa_getsockname(fd, (sockaddr*)&addr, &addrlen) == -1) {
         return "";
     }
-    srs_verbose("get local ip success.");
 
-    char address_string[64];
-    const int success = getnameinfo((const sockaddr*)&addr, addrlen, 
-                                    (char*)&address_string, sizeof(address_string),
-                                    NULL, 0,
-                                    NI_NUMERICHOST);    
-    if(success != 0) {
+    char saddr[64];
+    char* h = (char*)saddr;
+    socklen_t nbh = (socklen_t)sizeof(saddr);
+    const int r0 = getnameinfo((const sockaddr*)&addr, addrlen, h, nbh,NULL, 0, NI_NUMERICHOST);
+    if(r0 != 0) {
         return "";
     }
 
-    srs_verbose("get local ip of client ip=%s, fd=%d", address_string, fd);
-    return std::string(address_string);
+    return std::string(saddr);
 }
 
 int srs_get_local_port(int fd)
@@ -1146,7 +1143,6 @@ int srs_get_local_port(int fd)
     if (nsa_getsockname(fd, (sockaddr*)&addr, &addrlen) == -1) {
         return 0;
     }
-    srs_verbose("get local ip success.");
 
     int port = 0;
     switch(addr.ss_family) {
@@ -1158,7 +1154,6 @@ int srs_get_local_port(int fd)
          break;
     }
 
-    srs_verbose("get local port of client port=%s, fd=%d", port, fd);
     return port;
 }
 
@@ -1170,19 +1165,16 @@ string srs_get_peer_ip(int fd)
     if (nsa_getsockname(fd, (sockaddr*)&addr, &addrlen) == -1) {
         return "";
     }
-    srs_verbose("get peer ip success.");
 
-    char address_string[64];
-    const int success = getnameinfo((const sockaddr*)&addr, addrlen, 
-                                    (char*)&address_string, sizeof(address_string),
-                                    NULL, 0,
-                                    NI_NUMERICHOST);    
-    if(success != 0) {
+    char saddr[64];
+    char* h = (char*)saddr;
+    socklen_t nbh = (socklen_t)sizeof(saddr);
+    const int r0 = getnameinfo((const sockaddr*)&addr, addrlen, h, nbh, NULL, 0, NI_NUMERICHOST);
+    if(r0 != 0) {
         return "";
     }
 
-    srs_verbose("get peer ip of client ip=%s, fd=%d", address_string, fd);
-    return std::string(address_string);
+    return std::string(saddr);
 }
 
 bool srs_is_digit_number(const string& str)

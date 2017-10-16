@@ -460,7 +460,7 @@ static void create_listeners(void)
       port = SERV_PORT_DEFAULT;
 
     /* Create server socket */
-    if ((sock = nsa_socket(PF_INET, SOCK_STREAM, 0)) < 0)
+    if ((sock = nsa_socket(PF_INET, SOCK_STREAM, 0, NULL, 0)) < 0)
       err_sys_quit(errfd, "ERROR: can't create socket: socket");
     n = 1;
     if (nsa_setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&n, sizeof(n)) < 0)

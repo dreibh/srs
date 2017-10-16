@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
   }
 
   /* Create and bind listening socket */
-  if ((sock = nsa_socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+  if ((sock = nsa_socket(PF_INET, SOCK_STREAM, 0, NULL, 0)) < 0) {
     print_sys_error("socket");
     exit(1);
   }
@@ -412,7 +412,7 @@ static void *handle_request(void *arg)
   pds[0].events = POLLIN;
 
   /* Connect to remote host */
-  if ((sock = nsa_socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+  if ((sock = nsa_socket(PF_INET, SOCK_STREAM, 0, NULL, 0)) < 0) {
     print_sys_error("socket");
     goto done;
   }

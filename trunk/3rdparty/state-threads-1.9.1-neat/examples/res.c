@@ -233,7 +233,7 @@ int dns_getaddr(const char *host, struct in_addr *addr, st_utime_t timeout)
   }
 
   /* Create UDP socket */
-  if ((s = nsa_socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
+  if ((s = nsa_socket(PF_INET, SOCK_DGRAM, 0, NULL, 0)) < 0) {
     h_errno = NETDB_INTERNAL;
     return -1;
   }

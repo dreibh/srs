@@ -68,6 +68,7 @@
 #include <stdio.h>
 #include <netdb.h>
 
+#include <srs_core_autofree.hpp>
 #include <srs_kernel_utility.hpp>
 #include <srs_kernel_consts.hpp>
 
@@ -140,23 +141,23 @@ int srs_hijack_io_connect(srs_hijack_io_t ctx, const char* server_ip, int port)
 {
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
 
-    char port_string[8];
-    snprintf(port_string, sizeof(port_string), "%d", port);
+    char sport[8];
+    snprintf(sport, sizeof(sport), "%d", port);
+    
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family   = skt->family;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_NUMERICHOST;
-    addrinfo* result  = NULL;
-
-    if(getaddrinfo(server_ip, port_string, (const addrinfo*)&hints, &result) == 0) {
-        if(::nsa_connect(skt->fd, result->ai_addr, result->ai_addrlen, NULL, 0) < 0){
-            freeaddrinfo(result);
+    
+    addrinfo* r  = NULL;
+    SrsAutoFree(addrinfo, r);
+    if(getaddrinfo(server_ip, sport, (const addrinfo*)&hints, &r) == 0) {
+        if(::nsa_connect(skt->fd, r->ai_addr, r->ai_addrlen, NULL, 0) < 0){
             return ERROR_SOCKET_CONNECT;
         }
     }
 
-    freeaddrinfo(result);
     return ERROR_SUCCESS;
 }
 int srs_hijack_io_read(srs_hijack_io_t ctx, void* buf, size_t size, ssize_t* nread)

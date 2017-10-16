@@ -35,6 +35,7 @@
 #include <netdb.h>
 using namespace std;
 
+#include <srs_core_autofree.hpp>
 #include <srs_kernel_log.hpp>
 #include <srs_kernel_error.hpp>
 #include <srs_app_server.hpp>
@@ -113,31 +114,31 @@ srs_error_t SrsUdpListener::listen()
 {
     srs_error_t err = srs_success;
     
-    char port_string[8];
-    snprintf(port_string, sizeof(port_string), "%d", port);
+    char sport[8];
+    snprintf(sport, sizeof(sport), "%d", port);
+    
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags    = AI_NUMERICHOST;
-    addrinfo* result  = NULL;
-    if(getaddrinfo(ip.c_str(), port_string, (const addrinfo*)&hints, &result) != 0) {
-        return srs_error_new(ERROR_SYSTEM_IP_INVALID, "bad address");
+    
+    addrinfo* r  = NULL;
+    SrsAutoFree(addrinfo, r);
+    if(getaddrinfo(ip.c_str(), sport, (const addrinfo*)&hints, &r) != 0) {
+        return srs_error_new(ERROR_SYSTEM_IP_INVALID, "get address info");
     }
     
-    if ((_fd = nsa_socket(result->ai_family, result->ai_socktype, result->ai_protocol, NULL)) == -1) {
-        freeaddrinfo(result);
-        return srs_error_new(ERROR_SOCKET_CREATE, "create linux socket error. ip=%s, port=%d", ip.c_str(), port);
+    if ((_fd = nsa_socket(r->ai_family, r->ai_socktype, r->ai_protocol, NULL)) == -1) {
+        return srs_error_new(ERROR_SOCKET_CREATE, "create socket. ip=%s, port=%d", ip.c_str(), port);
     }
 
     srs_fd_close_exec(_fd);
     srs_socket_reuse_addr(_fd);
-    
-    if (nsa_bind(_fd, result->ai_addr, result->ai_addrlen, NULL, 0) == -1) {
-        freeaddrinfo(result);
-        return srs_error_new(ERROR_SOCKET_BIND, "bind socket error. ep=%s:%d", ip.c_str(), port);;
+
+    if (nsa_bind(_fd, r->ai_addr, r->ai_addrlen, NULL, 0) == -1) {
+        return srs_error_new(ERROR_SOCKET_BIND, "bind socket. ep=%s:%d", ip.c_str(), port);;
     }
-    freeaddrinfo(result);
     
     if ((_stfd = srs_netfd_open_socket(_fd)) == NULL){
         return srs_error_new(ERROR_ST_OPEN_SOCKET, "st open socket");
@@ -222,31 +223,31 @@ srs_error_t SrsTcpListener::listen()
 {
     srs_error_t err = srs_success;
     
-    char port_string[8];
-    snprintf(port_string, sizeof(port_string), "%d", port);
+    char sport[8];
+    snprintf(sport, sizeof(sport), "%d", port);
+    
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_NUMERICHOST;
-    addrinfo* result  = NULL;
-    if(getaddrinfo(ip.c_str(), port_string, (const addrinfo*)&hints, &result) != 0) {
-        return srs_error_new(ERROR_SYSTEM_IP_INVALID, "bad address");
+    
+    addrinfo* r = NULL;
+    SrsAutoFree(addrinfo, r);
+    if(getaddrinfo(ip.c_str(), sport, (const addrinfo*)&hints, &r) != 0) {
+        return srs_error_new(ERROR_SYSTEM_IP_INVALID, "get address info");
     }
     
-    if ((_fd = nsa_socket(result->ai_family, result->ai_socktype, result->ai_protocol, propertiesTCP)) == -1) {
-        freeaddrinfo(result);
-        return srs_error_new(ERROR_SOCKET_CREATE, "create linux socket error. ip=%s, port=%d", ip.c_str(), port);
+    if ((_fd = nsa_socket(r->ai_family, r->ai_socktype, r->ai_protocol, propertiesTCP)) == -1) {
+        return srs_error_new(ERROR_SOCKET_CREATE, "create socket. ip=%s, port=%d", ip.c_str(), port);
     }
 
     srs_fd_close_exec(_fd);
     srs_socket_reuse_addr(_fd);
     
-    if (nsa_bind(_fd, result->ai_addr, result->ai_addrlen, NULL, 0) == -1) {
-        freeaddrinfo(result);
-        return srs_error_new(ERROR_SOCKET_BIND, "bind socket error. ep=%s:%d", ip.c_str(), port);;
+    if (nsa_bind(_fd, r->ai_addr, r->ai_addrlen, NULL, 0) == -1) {
+        return srs_error_new(ERROR_SOCKET_BIND, "bind socket. ep=%s:%d", ip.c_str(), port);;
     }
-    freeaddrinfo(result);
 
     if (::nsa_listen(_fd, SERVER_LISTEN_BACKLOG) == -1) {
         return srs_error_new(ERROR_SOCKET_LISTEN, "listen socket");
