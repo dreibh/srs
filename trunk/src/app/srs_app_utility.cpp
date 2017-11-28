@@ -1105,16 +1105,6 @@ void srs_update_rtmp_server(int nb_conn, SrsKbps* kbps)
     }
 }
 
-int srs_check_ipv6()
-{
-    int sd = socket(AF_INET6, SOCK_DGRAM, 0);
-    if(sd >= 0) {
-        close(sd);
-        return 1;
-    }
-    return 0;
-}
-
 string srs_get_local_ip(int fd)
 {
     // discovery client information

@@ -76,13 +76,13 @@ SrsUdpListener::SrsUdpListener(ISrsUdpHandler* h, string i, int p)
     handler = h;
     ip = i;
     port = p;
-    
+
     _fd = -1;
     _stfd = NULL;
-    
+
     nb_buf = SRS_UDP_MAX_PACKET_SIZE;
     buf = new char[nb_buf];
-    
+
     trd = new SrsDummyCoroutine();
 }
 
@@ -90,13 +90,13 @@ SrsUdpListener::~SrsUdpListener()
 {
     // close the stfd to trigger thread to interrupted.
     srs_close_stfd(_stfd);
-    
+
     srs_freep(trd);
-    
+
     // st does not close it sometimes,
     // close it manually.
     nsa_close(_fd);
-    
+
     srs_freepa(buf);
 }
 
@@ -113,72 +113,77 @@ srs_netfd_t SrsUdpListener::stfd()
 srs_error_t SrsUdpListener::listen()
 {
     srs_error_t err = srs_success;
-    
+
     char sport[8];
     snprintf(sport, sizeof(sport), "%d", port);
-    
+
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags    = AI_NUMERICHOST;
-    
+
     addrinfo* r  = NULL;
     SrsAutoFree(addrinfo, r);
     if(getaddrinfo(ip.c_str(), sport, (const addrinfo*)&hints, &r) != 0) {
         return srs_error_new(ERROR_SYSTEM_IP_INVALID, "get address info");
     }
-    
+
     if ((_fd = nsa_socket(r->ai_family, r->ai_socktype, r->ai_protocol, NULL)) == -1) {
         return srs_error_new(ERROR_SOCKET_CREATE, "create socket. ip=%s, port=%d", ip.c_str(), port);
     }
 
     srs_fd_close_exec(_fd);
     srs_socket_reuse_addr(_fd);
+<<<<<<< HEAD
 
     if (nsa_bind(_fd, r->ai_addr, r->ai_addrlen, NULL, 0) == -1) {
+=======
+
+    if (bind(_fd, r->ai_addr, r->ai_addrlen) == -1) {
+>>>>>>> ossrs3.0-ipv6
         return srs_error_new(ERROR_SOCKET_BIND, "bind socket. ep=%s:%d", ip.c_str(), port);;
     }
-    
+
     if ((_stfd = srs_netfd_open_socket(_fd)) == NULL){
         return srs_error_new(ERROR_ST_OPEN_SOCKET, "st open socket");
     }
-    
+
     srs_freep(trd);
     trd = new SrsSTCoroutine("udp", this);
     if ((err = trd->start()) != srs_success) {
         return srs_error_wrap(err, "start thread");
     }
-    
+
     return err;
 }
 
 srs_error_t SrsUdpListener::cycle()
 {
     srs_error_t err = srs_success;
-    
+
     while (true) {
         if ((err = trd->pull()) != srs_success) {
             return srs_error_wrap(err, "udp listener");
         }
-        
+
         sockaddr_storage from;
         int nb_from = sizeof(from);
         int nread = 0;
-        
+
         if ((nread = srs_recvfrom(_stfd, buf, nb_buf, (sockaddr*)&from, &nb_from, SRS_UTIME_NO_TIMEOUT)) <= 0) {
             return srs_error_new(ERROR_SOCKET_READ, "udp read, nread=%d", nread);
         }
-        
+
         if ((err = handler->on_udp_packet((const sockaddr*)&from, nb_from, buf, nread)) != srs_success) {
             return srs_error_wrap(err, "handle packet %d bytes", nread);
         }
-        
+
         if (SrsUdpPacketRecvCycleMS > 0) {
             srs_usleep(SrsUdpPacketRecvCycleMS * 1000);
         }
     }
-    
+
     return err;
 }
 
@@ -187,17 +192,17 @@ SrsTcpListener::SrsTcpListener(ISrsTcpHandler* h, string i, int p)
     handler = h;
     ip = i;
     port = p;
-    
+
     _fd = -1;
     _stfd = NULL;
-    
+
     trd = new SrsDummyCoroutine();
 }
 
 SrsTcpListener::~SrsTcpListener()
 {
     srs_freep(trd);
-    
+
     srs_close_stfd(_stfd);
 }
 
@@ -222,29 +227,29 @@ static const char* propertiesTCP = "{\
 srs_error_t SrsTcpListener::listen()
 {
     srs_error_t err = srs_success;
-    
+
     char sport[8];
     snprintf(sport, sizeof(sport), "%d", port);
-    
+
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_NUMERICHOST;
-    
+
     addrinfo* r = NULL;
     SrsAutoFree(addrinfo, r);
     if(getaddrinfo(ip.c_str(), sport, (const addrinfo*)&hints, &r) != 0) {
         return srs_error_new(ERROR_SYSTEM_IP_INVALID, "get address info");
     }
-    
+
     if ((_fd = nsa_socket(r->ai_family, r->ai_socktype, r->ai_protocol, propertiesTCP)) == -1) {
         return srs_error_new(ERROR_SOCKET_CREATE, "create socket. ip=%s, port=%d", ip.c_str(), port);
     }
 
     srs_fd_close_exec(_fd);
     srs_socket_reuse_addr(_fd);
-    
+
     if (nsa_bind(_fd, r->ai_addr, r->ai_addrlen, NULL, 0) == -1) {
         return srs_error_new(ERROR_SOCKET_BIND, "bind socket. ep=%s:%d", ip.c_str(), port);;
     }
@@ -252,42 +257,42 @@ srs_error_t SrsTcpListener::listen()
     if (::nsa_listen(_fd, SERVER_LISTEN_BACKLOG) == -1) {
         return srs_error_new(ERROR_SOCKET_LISTEN, "listen socket");
     }
-    
+
     if ((_stfd = srs_netfd_open_socket(_fd)) == NULL){
         return srs_error_new(ERROR_ST_OPEN_SOCKET, "st open socket");
     }
-    
+
     srs_freep(trd);
     trd = new SrsSTCoroutine("tcp", this);
     if ((err = trd->start()) != srs_success) {
         return srs_error_wrap(err, "start coroutine");
     }
-    
+
     return err;
 }
 
 srs_error_t SrsTcpListener::cycle()
 {
     srs_error_t err = srs_success;
-    
+
     while (true) {
         if ((err = trd->pull()) != srs_success) {
             return srs_error_wrap(err, "tcp listener");
         }
-        
+
         srs_netfd_t cstfd = srs_accept(_stfd, NULL, NULL, SRS_UTIME_NO_TIMEOUT);
         if(cstfd == NULL){
             return srs_error_new(ERROR_SOCKET_CREATE, "accept failed");
         }
-        
+
         int cfd = srs_netfd_fileno(cstfd);
         srs_fd_close_exec(cfd);
-        
+
         if ((err = handler->on_tcp_client(cstfd)) != srs_success) {
             return srs_error_wrap(err, "handle fd=%d", cfd);
         }
     }
-    
+
     return err;
 }
 

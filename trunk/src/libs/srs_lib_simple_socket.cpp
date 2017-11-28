@@ -83,15 +83,15 @@ struct SrsBlockSyncSocket
     // The send/recv timeout in ms.
     int64_t rtm;
     int64_t stm;
-    
+
     SrsBlockSyncSocket() {
         stm = rtm = SRS_CONSTS_NO_TMMS;
         rbytes = sbytes = 0;
-        
+
         SOCKET_RESET(fd);
         SOCKET_SETUP();
     }
-    
+
     virtual ~SrsBlockSyncSocket() {
         SOCKET_CLOSE(fd);
         SOCKET_CLEANUP();
@@ -143,13 +143,13 @@ int srs_hijack_io_connect(srs_hijack_io_t ctx, const char* server_ip, int port)
 
     char sport[8];
     snprintf(sport, sizeof(sport), "%d", port);
-    
+
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     hints.ai_family   = skt->family;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags    = AI_NUMERICHOST;
-    
+
     addrinfo* r  = NULL;
     SrsAutoFree(addrinfo, r);
     if(getaddrinfo(server_ip, sport, (const addrinfo*)&hints, &r) == 0) {
@@ -163,54 +163,54 @@ int srs_hijack_io_connect(srs_hijack_io_t ctx, const char* server_ip, int port)
 int srs_hijack_io_read(srs_hijack_io_t ctx, void* buf, size_t size, ssize_t* nread)
 {
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
-    
+
     int ret = ERROR_SUCCESS;
-    
+
     ssize_t nb_read = ::nsa_recv(skt->fd, (char*)buf, size, 0);
-    
+
     if (nread) {
         *nread = nb_read;
     }
-    
+
     // On success a non-negative integer indicating the number of bytes actually read is returned
     // (a value of 0 means the network connection is closed or end of file is reached).
     if (nb_read <= 0) {
         if (nb_read < 0 && SOCKET_ERRNO() == SOCKET_ETIME) {
             return ERROR_SOCKET_TIMEOUT;
         }
-        
+
         if (nb_read == 0) {
             errno = SOCKET_ECONNRESET;
         }
-        
+
         return ERROR_SOCKET_READ;
     }
-    
+
     skt->rbytes += nb_read;
-    
+
     return ret;
 }
 int srs_hijack_io_set_recv_timeout(srs_hijack_io_t ctx, int64_t tm)
 {
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
-    
+
     // The default for this option is zero,
     // which indicates that a receive operation shall not time out.
     int32_t sec = 0;
     int32_t usec = 0;
-    
+
     if (tm != SRS_CONSTS_NO_TMMS) {
         sec = (int32_t)(tm / 1000);
         usec = (int32_t)((tm % 1000)*1000);
     }
-    
+
     struct timeval tv = { sec , usec };
     if (nsa_setsockopt(skt->fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) == -1) {
         return SOCKET_ERRNO();
     }
-    
+
     skt->rtm = tm;
-    
+
     return ERROR_SUCCESS;
 }
 int64_t srs_hijack_io_get_recv_timeout(srs_hijack_io_t ctx)
@@ -226,24 +226,24 @@ int64_t srs_hijack_io_get_recv_bytes(srs_hijack_io_t ctx)
 int srs_hijack_io_set_send_timeout(srs_hijack_io_t ctx, int64_t tm)
 {
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
-    
+
     // The default for this option is zero,
     // which indicates that a receive operation shall not time out.
     int32_t sec = 0;
     int32_t usec = 0;
-    
+
     if (tm != SRS_CONSTS_NO_TMMS) {
         sec = (int32_t)(tm / 1000);
         usec = (int32_t)((tm % 1000)*1000);
     }
-    
+
     struct timeval tv = { sec , usec };
     if (nsa_setsockopt(skt->fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) == -1) {
         return SOCKET_ERRNO();
     }
-    
+
     skt->stm = tm;
-    
+
     return ERROR_SUCCESS;
 }
 int64_t srs_hijack_io_get_send_timeout(srs_hijack_io_t ctx)
@@ -259,15 +259,15 @@ int64_t srs_hijack_io_get_send_bytes(srs_hijack_io_t ctx)
 int srs_hijack_io_writev(srs_hijack_io_t ctx, const iovec *iov, int iov_size, ssize_t* nwrite)
 {
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
-    
+
     int ret = ERROR_SUCCESS;
-    
+
     ssize_t nb_write = ::writev(skt->fd, iov, iov_size);
-    
+
     if (nwrite) {
         *nwrite = nb_write;
     }
-    
+
     // On  success,  the  readv()  function  returns the number of bytes read;
     // the writev() function returns the number of bytes written.  On error, -1 is
     // returned, and errno is set appropriately.
@@ -276,12 +276,12 @@ int srs_hijack_io_writev(srs_hijack_io_t ctx, const iovec *iov, int iov_size, ss
         if (nb_write < 0 && SOCKET_ERRNO() == SOCKET_ETIME) {
             return ERROR_SOCKET_TIMEOUT;
         }
-        
+
         return ERROR_SOCKET_WRITE;
     }
-    
+
     skt->sbytes += nb_write;
-    
+
     return ret;
 }
 int srs_hijack_io_is_never_timeout(srs_hijack_io_t ctx, int64_t tm)
@@ -291,54 +291,54 @@ int srs_hijack_io_is_never_timeout(srs_hijack_io_t ctx, int64_t tm)
 int srs_hijack_io_read_fully(srs_hijack_io_t ctx, void* buf, size_t size, ssize_t* nread)
 {
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
-    
+
     int ret = ERROR_SUCCESS;
-    
+
     size_t left = size;
     ssize_t nb_read = 0;
-    
+
     while (left > 0) {
         char* this_buf = (char*)buf + nb_read;
         ssize_t this_nread;
-        
+
         if ((ret = srs_hijack_io_read(ctx, this_buf, left, &this_nread)) != ERROR_SUCCESS) {
             return ret;
         }
-        
+
         nb_read += this_nread;
         left -= (size_t)this_nread;
     }
-    
+
     if (nread) {
         *nread = nb_read;
     }
     skt->rbytes += nb_read;
-    
+
     return ret;
 }
 int srs_hijack_io_write(srs_hijack_io_t ctx, void* buf, size_t size, ssize_t* nwrite)
 {
     SrsBlockSyncSocket* skt = (SrsBlockSyncSocket*)ctx;
-    
+
     int ret = ERROR_SUCCESS;
-    
+
     ssize_t nb_write = ::nsa_send(skt->fd, (char*)buf, size, 0);
-    
+
     if (nwrite) {
         *nwrite = nb_write;
     }
-    
+
     if (nb_write <= 0) {
         // @see https://github.com/ossrs/srs/issues/200
         if (nb_write < 0 && SOCKET_ERRNO() == SOCKET_ETIME) {
             return ERROR_SOCKET_TIMEOUT;
         }
-        
+
         return ERROR_SOCKET_WRITE;
     }
-    
+
     skt->sbytes += nb_write;
-    
+
     return ret;
 }
 #endif
